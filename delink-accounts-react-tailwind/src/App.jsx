@@ -1,0 +1,5 @@
+import DeLinkAccounts from "./pages/DeLinkAccounts";
+
+export default function App() {
+  return <DeLinkAccounts />;
+}
