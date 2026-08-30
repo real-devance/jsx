@@ -1,0 +1,3 @@
+export const normalize=id=>String(id??"").trim();
+export function validateAccountId(id){id=normalize(id);if(!id)return"Account ID is required.";if(!/^\d+$/.test(id))return"Account ID must contain numbers only.";return""}
+export function validateIds(ids){const valid=[],invalid=[],duplicates=[],seen=new Set();ids.forEach((raw,i)=>{const id=normalize(raw);if(!id)return;if(!/^\d+$/.test(id)){invalid.push({row:i+2,id});return}if(seen.has(id)){duplicates.push({row:i+2,id});return}seen.add(id);valid.push(id)});return{valid,invalid,duplicates}}

@@ -1,0 +1,3 @@
+import {mockAccounts,missingIds} from "../data/mockAccounts";const wait=ms=>new Promise(r=>setTimeout(r,ms));
+export async function validateAccount(accountId){await wait(550);if(missingIds.has(accountId)||!mockAccounts[accountId])return{exists:false,accountId,error:"Account not found on backend.",children:[]};return{exists:true,...mockAccounts[accountId]}}
+export async function delinkAccount(accountId){await wait(750);if(accountId==="10000012352")return{success:false,error:"De-link request failed for this account."};return{success:true}}

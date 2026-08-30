@@ -1,0 +1,1 @@
+export default function Checkbox({checked,indeterminate,onChange,disabled}){return <input type="checkbox" checked={checked} ref={n=>{if(n)n.indeterminate=!!indeterminate}} onChange={onChange} disabled={disabled} className="h-4 w-4 cursor-pointer accent-brand-500 disabled:opacity-50"/>}
