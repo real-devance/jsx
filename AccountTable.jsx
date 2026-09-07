@@ -669,23 +669,23 @@ export default function AccountTable({
                                     />
                                 </th>
 
-                                <th className="p-3 text-left font-semibold">
+                                <th className="p-2 text-left font-semibold">
                                     Account ID
                                 </th>
 
-                                <th className="p-3 text-left font-semibold">
+                                <th className="p-2 text-left font-semibold">
                                     Login ID
                                 </th>
 
-                                <th className="p-3 text-left font-semibold">
+                                <th className="p-2 text-left font-semibold">
                                     Type
                                 </th>
 
-                                <th className="p-3 text-left font-semibold">
+                                <th className="p-2 text-left font-semibold">
                                     Status
                                 </th>
 
-                                <th className="p-3 text-left font-semibold">
+                                <th className="p-2 text-left font-semibold">
                                     Message
                                 </th>
                             </tr>
@@ -706,17 +706,12 @@ export default function AccountTable({
                                                 transition-colors
                                                 ${
                                                     hasChildren
-                                                        ? "border-b-0 bg-slate-200 hover:bg-blue-50"
+                                                        ? "border-b border-slate-400 bg-slate-100 hover:bg-blue-50"
                                                         : "border-b border-slate-300 bg-white hover:bg-blue-50"
                                                 }
                                             `}
                                         >
                                             <td className="w-8 p-2 text-center">
-                                                {hasChildren && (
-                                                    <span className="text-slate-500">
-                                                        ▼
-                                                    </span>
-                                                )}
                                             </td>
 
                                             <td className="w-10 p-2">
@@ -754,14 +749,8 @@ export default function AccountTable({
                                                 />
                                             </td>
 
-                                            <td className="p-3">
+                                            <td className="p-2">
                                                 <div className="flex items-center gap-2">
-                                                    {hasChildren && (
-                                                        <span className="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold tracking-wide text-blue-700">
-                                                            GROUP
-                                                        </span>
-                                                    )}
-
                                                     <span className="font-semibold">
                                                         {
                                                             account.accountId
@@ -770,13 +759,13 @@ export default function AccountTable({
                                                 </div>
                                             </td>
 
-                                            <td className="p-3">
+                                            <td className="p-2">
                                                 {
                                                     account.loginId
                                                 }
                                             </td>
 
-                                            <td className="p-3">
+                                            <td className="p-2">
                                                 <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800">
                                                     {
                                                         account.type
@@ -784,7 +773,7 @@ export default function AccountTable({
                                                 </span>
                                             </td>
 
-                                            <td className="p-3">
+                                            <td className="p-2">
                                                 <StatusBadge
                                                     status={
                                                         account.status
@@ -810,47 +799,14 @@ export default function AccountTable({
                                                 child,
                                                 childIndex
                                             ) => {
-                                                const isLast =
-                                                    childIndex ===
-                                                    account
-                                                        .children
-                                                        .length -
-                                                        1;
-
                                                 return (
                                                     <tr
                                                         key={
                                                             child.accountId
                                                         }
-                                                        className={`
-                                                            bg-slate-50
-                                                            transition-colors
-                                                            hover:bg-blue-50
-                                                            ${
-                                                                isLast
-                                                                    ? "border-b-2 border-slate-300"
-                                                                    : "border-b border-slate-200"
-                                                            }
-                                                        `}
+                                                        className="border-b border-slate-200 bg-slate-50 transition-colors hover:bg-blue-50"
                                                     >
-                                                        {/* Tree connector */}
-                                                        <td className="p-0">
-                                                            <div className="flex h-full min-h-[48px] justify-end">
-                                                                <div
-                                                                    className={`
-                                                                        mr-1
-                                                                        w-4
-                                                                        border-l-2
-                                                                        border-slate-300
-                                                                        ${
-                                                                            isLast
-                                                                                ? "rounded-bl-lg border-b-2"
-                                                                                : ""
-                                                                        }
-                                                                    `}
-                                                                />
-                                                            </div>
-                                                        </td>
+                                                        <td className="w-8 p-0" />
 
                                                         <td className="p-2">
                                                             <Checkbox
@@ -870,7 +826,7 @@ export default function AccountTable({
                                                             />
                                                         </td>
 
-                                                        <td className="p-3 pl-4">
+                                                        <td className="p-2 pl-4">
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-slate-700">
                                                                     {
@@ -878,19 +834,16 @@ export default function AccountTable({
                                                                     }
                                                                 </span>
 
-                                                                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
-                                                                    CHILD
-                                                                </span>
                                                             </div>
                                                         </td>
 
-                                                        <td className="p-3">
+                                                        <td className="p-2">
                                                             {
                                                                 child.loginId
                                                             }
                                                         </td>
 
-                                                        <td className="p-3">
+                                                        <td className="p-2">
                                                             <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
                                                                 {
                                                                     child.type
@@ -898,7 +851,7 @@ export default function AccountTable({
                                                             </span>
                                                         </td>
 
-                                                        <td className="p-3">
+                                                        <td className="p-2">
                                                             <StatusBadge
                                                                 status={
                                                                     child.status
