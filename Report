@@ -1,0 +1,38 @@
+DHBVN – Frontend Security Measures
+
+Overview
+
+The DHBVN frontend is developed using React and follows basic security practices for authentication, API communication, input validation, and access control.
+
+Security Measures
+
+- Input Validation: User inputs are validated before being submitted to the backend.
+- Authentication & Access Control: Application functionality is controlled based on the authenticated user's access and permissions.
+- Secure API Communication: APIs are accessed over HTTPS.
+- Authentication Methods: The backend APIs currently support both Basic Authentication and JWT.
+- Preferred Authentication – JWT: For frontend API calls, JWT-based authentication is preferred. Basic Authentication requires reusable credentials to be included with requests, which creates a greater risk of exposing credentials through browser-side activity or client-side code.
+- Sensitive Data Protection: Passwords, API secrets, and other sensitive credentials are not hardcoded in the React application.
+- XSS Prevention: React's default escaping is used to prevent user-controlled content from being interpreted as executable HTML.
+- Error Handling: Frontend errors are handled without exposing unnecessary backend or system information.
+- Backend Validation: Frontend validation is treated as an additional layer; authentication, authorization, and critical validation are enforced by the backend.
+
+Frontend Libraries & Technologies
+
+Area| Library / Technology| Purpose
+Frontend| React| Building the application UI and components
+API Communication| Axios| Sending requests to backend APIs
+Form Handling| React Hook Form| Managing frontend forms
+Validation| Zod| Validating form and request data
+API/Server State| TanStack Query| Managing API requests, caching, and server state
+UI Components| ShadCN UI / Radix UI| Reusable UI components
+Styling| Tailwind CSS| Frontend styling and responsive layouts
+
+Authentication Recommendation
+
+Since the APIs currently support both Basic Authentication and JWT, the recommended approach for the React frontend is to use JWT-based authentication.
+
+JWT avoids putting reusable username/password credentials into the browser-facing API flow. However, JWT implementation still needs secure token storage, transmission, expiry, and backend validation.
+
+Security Principle
+
+The React frontend provides an additional security layer, while the backend remains responsible for enforcing authentication, authorization, and critical data validation.
