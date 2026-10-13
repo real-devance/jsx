@@ -1,0 +1,253 @@
+
+import {
+  Document,
+  Page,
+  View,
+  Text,
+  StyleSheet,
+} from "@react-pdf/renderer";
+
+const terms = [
+  "1. NEFT/RTGS should be initiated by using customer to customer bank account transfer [R41 mode only]. In case you are requesting your bank branch to initiate NEFT/RTGS on your behalf, it must be specifically using R41 mode only. Using any other mode for transfer of funds will be treated as invalid and required services will not be rendered.",
+  "2. NEFT/RTGS transfer amount should be an exact match with transaction amount mentioned on this slip (including paisa). Moreover, higher amount can be transferred.",
+  "3. Do not round off the transfer amount on lower side, even for the second decimal. Any transaction lower than this challan amount will be automatically rejected.",
+  "4. The sender will not initiate multiple NEFT/RTGS by breaking the amount in more than one part. Such EFTs will be treated as invalid transactions and required service will not be delivered.",
+  "5. NEFT/RTGS should be initiated from the sender's bank account as any refund/reversal will be credited in the same bank account.",
+  "6. It is sender's responsibility to ensure that the bank account is enabled for incoming NEFT/RTGS.",
+  "7. A nominal amount may be charged to the sender towards refund processing for invalid transactions / Refunds.",
+  "8. This Challan is valid for 3 days only. Any payment made after 3 days will be automatically Rejected.",
+  "9. Transaction are allowed only through RTGS/NEFT.",
+  "10. This challan is meant for one time transaction/ uses only. The consumers are advised to download fresh challan for every transaction. Any subsequent NEFT/ RTGS transactions using the details of this challan will automatically liable to be rejected without any claim on DHBVN.",
+  '11. the fifth Character of this IFSC code is “0”( Numeric ZERO).',
+];
+
+const s = StyleSheet.create({
+  page: {
+    paddingTop: 12,
+    paddingHorizontal: 14,
+    backgroundColor: "#fff",
+    fontFamily: "Helvetica",
+    color: "#000",
+  },
+  receipt: {
+    width: "100%",
+    borderWidth: 0.7,
+    borderColor: "#555",
+  },
+  row: {
+    flexDirection: "row",
+    minHeight: 15,
+    borderBottomWidth: 0.6,
+    borderBottomColor: "#555",
+  },
+  cell: {
+    justifyContent: "center",
+    paddingHorizontal: 2,
+    paddingVertical: 1,
+    borderRightWidth: 0.6,
+    borderRightColor: "#555",
+  },
+  label: {
+    width: "20%",
+    fontSize: 9,
+    fontWeight: "bold",
+  },
+  value: {
+    width: "22%",
+    fontSize: 9,
+  },
+  labelRight: {
+    width: "25%",
+    fontSize: 9,
+    fontWeight: "bold",
+  },
+  valueRight: {
+    width: "33%",
+    fontSize: 9,
+  },
+  logo: {
+    width: "20%",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRightWidth: 0.6,
+    borderRightColor: "#555",
+    minHeight: 31,
+  },
+  logoPlaceholder: {
+    fontSize: 19,
+    fontWeight: "bold",
+    color: "#253d91",
+  },
+  heading: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 2,
+  },
+  headingText: {
+    fontSize: 10,
+    fontWeight: "bold",
+    textAlign: "center",
+    lineHeight: 11,
+  },
+  sectionHeading: {
+    fontSize: 9,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  centeredRow: {
+    minHeight: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 2,
+    borderBottomWidth: 0.6,
+    borderBottomColor: "#555",
+  },
+  centeredText: {
+    fontSize: 9,
+    textAlign: "center",
+  },
+  termsHeading: {
+    minHeight: 15,
+    justifyContent: "center",
+    alignItems: "center",
+    borderBottomWidth: 0.6,
+    borderBottomColor: "#555",
+  },
+  term: {
+    fontSize: 8.5,
+    lineHeight: 9.3,
+    paddingHorizontal: 2,
+    paddingVertical: 1,
+    borderBottomWidth: 0.6,
+    borderBottomColor: "#777",
+  },
+});
+
+function DetailRow({
+  leftLabel,
+  leftValue,
+  rightLabel,
+  rightValue,
+}: {
+  leftLabel: string;
+  leftValue: string;
+  rightLabel: string;
+  rightValue: string;
+}) {
+  return (
+    <View style={s.row}>
+      <View style={[s.cell, s.label]}>
+        <Text>{leftLabel}</Text>
+      </View>
+      <View style={[s.cell, s.value]}>
+        <Text>{leftValue}</Text>
+      </View>
+      <View style={[s.cell, s.labelRight]}>
+        <Text>{rightLabel}</Text>
+      </View>
+      <View style={[s.cell, s.valueRight, { borderRightWidth: 0 }]}>
+        <Text>{rightValue}</Text>
+      </View>
+    </View>
+  );
+}
+
+export default function DhbvnReceipt() {
+  return (
+    <Document title="DHBVN NEFT RTGS Challan">
+      <Page size="A4" style={s.page}>
+        <View style={s.receipt}>
+          {/* Header */}
+          <View style={s.row}>
+            <View style={s.logo}>
+              {/* Replace this text with your existing logo/icon */}
+              <Text style={s.logoPlaceholder}>DHBVN</Text>
+            </View>
+            <View style={s.heading}>
+              <Text style={s.headingText}>
+                Dakshin Haryana Bijli Vitran Nigam{"\n"}
+                Vidyut Sadan, Vidyut Nagar, Hisar -125005{"\n"}
+                Haryana, India
+              </Text>
+            </View>
+          </View>
+
+          {/* Account information */}
+          <DetailRow
+            leftLabel="Account No"
+            leftValue="7283920000"
+            rightLabel="Consumer Name"
+            rightValue="RAM SINGH\\AAD RAM"
+          />
+          <DetailRow
+            leftLabel="Reference ID"
+            leftValue="147791085"
+            rightLabel="Reference Date"
+            rightValue="13/10/2026"
+          />
+          <DetailRow
+            leftLabel="Pay-Option:"
+            leftValue="Online EFT"
+            rightLabel="Amount"
+            rightValue="6236"
+          />
+
+          {/* NEFT/RTGS details */}
+          <View style={s.centeredRow}>
+            <Text style={s.sectionHeading}>NEFT/RTGS Details</Text>
+          </View>
+
+          {[
+            ["Beneficiary Name:", "Dakshin Haryana Bijli Vitran Nigam-Online"],
+            ["Beneficiary A/C No:", "ZDHBVN147791085"],
+            ["Beneficiary IFSC:", "YESB0CMSNOC"],
+            ["Amount:", "6236"],
+          ].map(([label, value]) => (
+            <View key={label} style={s.row}>
+              <View
+                style={[
+                  s.cell,
+                  {
+                    width: "22%",
+                    alignItems: "flex-end",
+                  },
+                ]}
+              >
+                <Text style={{ fontSize: 9, fontWeight: "bold" }}>
+                  {label}
+                </Text>
+              </View>
+              <View
+                style={[
+                  s.cell,
+                  {
+                    width: "78%",
+                    alignItems: "center",
+                    borderRightWidth: 0,
+                  },
+                ]}
+              >
+                <Text style={{ fontSize: 9 }}>{value}</Text>
+              </View>
+            </View>
+          ))}
+
+          {/* Terms and conditions */}
+          <View style={s.termsHeading}>
+            <Text style={s.sectionHeading}>
+              I/We (sender) have read, understood and accepted the following
+              terms &amp; conditions:
+            </Text>
+          </View>
+
+          {terms.map((term) => (
+            <Text key={term.slice(0, 5)} style={s.term}>
+              {term}
+            </Text>
+          ))}
+        </View>
+      </Page>
+    </Document>
+  );
+}
