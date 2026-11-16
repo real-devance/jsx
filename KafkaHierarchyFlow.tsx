@@ -66,9 +66,8 @@ type TopicNodeData = ToggleData & {
   messages: string;
   lag: number;
   throughput: string;
+  groups: Array<ConsumerGroup & { expanded: boolean; onToggle: () => void }>;
 };
-type GroupNodeData = ToggleData & { consumerCount: number };
-type ConsumerNodeData = ToggleData;
 
 const initialKafkaData: KafkaData = {
   name: "kafka-cluster-1",
@@ -170,8 +169,6 @@ const topicGap = 36;
 const brokerGap = 90;
 const brokerTop = 150;
 const topicTop = 320;
-const groupTop = 535;
-const consumerTop = 625;
 
 function statusClass(status?: string) {
   return status === "Offline" || status === "Inactive" || status === "Degraded"
@@ -269,49 +266,51 @@ function TopicNode({ data }: NodeProps<Node<TopicNodeData>>) {
           <div className="flex justify-between"><span className="text-slate-500">Throughput</span><b>{data.throughput}</b></div>
         </div>
       </div>
-      <button
-        type="button"
-        onClick={(event) => { event.stopPropagation(); data.onToggle?.(); }}
-        className="nodrag mx-3 mb-3 w-[calc(100%-24px)] rounded-lg border border-violet-200 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-50"
-      >
-        {data.expanded ? "− Hide consumer groups" : "+ Show consumer groups"}
-      </button>
-      <Handle type="source" position={Position.Bottom} className="!h-2 !w-2 !border-2 !border-white !bg-slate-500" />
-    </NodeShell>
-  );
-}
 
-function GroupNode({ data }: NodeProps<Node<GroupNodeData>>) {
-  return (
-    <NodeShell className="w-[270px] border-sky-200 bg-sky-50/70 px-3 py-2">
-      <Handle type="target" position={Position.Top} className="!h-2 !w-2 !border-2 !border-white !bg-slate-500" />
-      <div className="flex items-center gap-2">
-        <span className="text-sky-700">♟</span>
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">{data.title}</span>
-        <span className="text-xs text-slate-500">{data.consumerCount}</span>
-      </div>
-      <button
-        type="button"
-        onClick={(event) => { event.stopPropagation(); data.onToggle?.(); }}
-        className="nodrag mt-2 rounded-md border border-sky-200 bg-white px-2 py-0.5 text-[11px] font-medium text-sky-700 hover:bg-sky-50"
-      >
-        {data.expanded ? "− Hide consumers" : "+ Show consumers"}
-      </button>
-      <Handle type="source" position={Position.Bottom} className="!h-2 !w-2 !border-2 !border-white !bg-slate-500" />
-    </NodeShell>
-  );
-}
-
-function ConsumerNode({ data }: NodeProps<Node<ConsumerNodeData>>) {
-  return (
-    <NodeShell className="w-[220px] border-slate-200 px-3 py-2">
-      <Handle type="target" position={Position.Top} className="!h-2 !w-2 !border-2 !border-white !bg-slate-500" />
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-          <span className="text-sky-700">▣</span>{data.title}
+      {/* Consumer groups are rendered inside the topic node, not as separate React Flow nodes. */}
+      <div className="mx-3 mb-3 overflow-hidden rounded-xl border border-sky-200">
+        <div className="flex items-center justify-between bg-sky-50 px-3 py-2">
+          <span className="text-xs font-bold text-sky-900">Consumer Groups ({data.groups.length})</span>
+          <span className="text-[10px] font-medium text-sky-700">Nested in topic</span>
         </div>
-        <StatusPill status={data.status ?? "Running"} />
+        <div className="space-y-2 p-2">
+          {data.groups.map((group) => (
+            <div key={group.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+              <div className="flex items-center justify-between gap-2 px-2.5 py-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="text-sky-700">♟</span>
+                  <span className="truncate text-xs font-semibold text-slate-800">{group.name}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={(event) => { event.stopPropagation(); group.onToggle(); }}
+                  className="nodrag shrink-0 rounded border border-sky-200 px-2 py-0.5 text-[10px] font-semibold text-sky-700 hover:bg-sky-50"
+                  aria-label={group.expanded ? `Collapse ${group.name}` : `Expand ${group.name}`}
+                >
+                  {group.expanded ? "−" : "+"} {group.consumers.length}
+                </button>
+              </div>
+              {group.expanded && (
+                <div className="space-y-1 border-t border-slate-100 bg-slate-50 p-2">
+                  {group.consumers.map((consumer) => (
+                    <div key={consumer.id} className="flex items-center justify-between gap-2 rounded-md border border-slate-200 bg-white px-2 py-1.5">
+                      <span className="truncate text-[11px] font-medium text-slate-700">▣ {consumer.name}</span>
+                      <StatusPill status={consumer.status} />
+                    </div>
+                  ))}
+                  {group.consumers.length === 0 && (
+                    <p className="text-[11px] text-slate-400">No consumers in this group</p>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+          {data.groups.length === 0 && (
+            <p className="px-1 py-2 text-center text-xs text-slate-400">No consumer groups</p>
+          )}
+        </div>
       </div>
+      <Handle type="source" position={Position.Bottom} className="!h-2 !w-2 !border-2 !border-white !bg-slate-500" />
     </NodeShell>
   );
 }
@@ -320,15 +319,12 @@ const nodeTypes = {
   cluster: ClusterNode,
   broker: BrokerNode,
   topic: TopicNode,
-  group: GroupNode,
-  consumer: ConsumerNode,
 };
 
 /**
- * Builds a top-down tree from the API-shaped Kafka object.
- * Each topic gets its own column. Consumer groups and consumers are
- * positioned underneath their parent topic, so adding data needs no
- * hand-authored node coordinates.
+ * Builds a top-down hierarchy from the API-shaped Kafka object.
+ * Each topic is a React Flow node; its consumer groups and consumers are
+ * nested inside that node's own UI rather than separate graph nodes.
  */
 function buildGraph(
   kafka: KafkaData,
@@ -378,7 +374,15 @@ function buildGraph(
     if (brokerExpanded) {
       broker.topics.forEach((topic, topicIndex) => {
         const x = brokerStart + topicIndex * (topicWidth + topicGap);
-        const topicExpanded = expanded[topic.id] !== false;
+        const groups = topic.groups.map((group) => {
+          const groupId = `${topic.id}::${group.id}`;
+          return {
+            ...group,
+            expanded: expanded[groupId] !== false,
+            onToggle: () => toggle(groupId),
+          };
+        });
+
         nodes.push({
           id: topic.id,
           type: "topic",
@@ -391,50 +395,11 @@ function buildGraph(
             messages: topic.messages,
             lag: topic.lag,
             throughput: topic.throughput,
-            expanded: topicExpanded,
-            onToggle: () => toggle(topic.id),
+            groups,
           },
           draggable: false,
         });
         edges.push({ id: `${broker.id}-${topic.id}`, source: broker.id, target: topic.id, type: "smoothstep" });
-
-        if (topicExpanded) {
-          topic.groups.forEach((group, groupIndex) => {
-            const groupId = `${topic.id}::${group.id}`;
-            const groupExpanded = expanded[groupId] !== false;
-            const groupY = groupTop + groupIndex * 125;
-            nodes.push({
-              id: groupId,
-              type: "group",
-              position: { x: x + (topicWidth - 270) / 2, y: groupY },
-              data: {
-                title: group.name,
-                consumerCount: group.consumers.length,
-                expanded: groupExpanded,
-                onToggle: () => toggle(groupId),
-              },
-              draggable: false,
-            });
-            edges.push({ id: `${topic.id}-${groupId}`, source: topic.id, target: groupId, type: "smoothstep" });
-
-            if (groupExpanded) {
-              group.consumers.forEach((consumer, consumerIndex) => {
-                const consumerId = `${groupId}::${consumer.id}`;
-                nodes.push({
-                  id: consumerId,
-                  type: "consumer",
-                  position: {
-                    x: x + (topicWidth - 220) / 2,
-                    y: consumerTop + groupIndex * 125 + consumerIndex * 62,
-                  },
-                  data: { title: consumer.name, status: consumer.status },
-                  draggable: false,
-                });
-                edges.push({ id: `${groupId}-${consumerId}`, source: groupId, target: consumerId, type: "smoothstep" });
-              });
-            }
-          });
-        }
       });
     }
     brokerStart += width + brokerGap;
@@ -492,7 +457,6 @@ export default function KafkaHierarchyFlow({
               if (node.type === "cluster") return "#d8b4fe";
               if (node.type === "broker") return "#7dd3fc";
               if (node.type === "topic") return "#c4b5fd";
-              if (node.type === "group") return "#bae6fd";
               return "#e2e8f0";
             }}
           />
