@@ -24,7 +24,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -40,9 +39,7 @@ import {
   CircleDot,
   Database,
   Layers3,
-  LayoutGrid,
   Network,
-  RefreshCw,
   Server,
   Users,
 } from "lucide-react";
@@ -101,11 +98,11 @@ type CommonNodeData = {
   status?: string;
 };
 
+type BrokerNodeData = CommonNodeData & { expanded: boolean; onToggle: (expanded: boolean) => void };
 type TopicNodeData = {
   topic: KafkaTopic;
   expanded: boolean;
-  loading: boolean;
-  onToggle: (topicId: string) => void;
+  onToggle: (topicId: string, open: boolean) => void;
 };
 
 // -----------------------------------------------------------------------------
@@ -194,22 +191,6 @@ const initialKafkaData: KafkaCluster = {
   ],
 };
 
-// Replace these placeholder paths with the real API endpoints.
-async function fetchKafkaCluster(): Promise<KafkaCluster> {
-  const response = await fetch("/api/kafka/cluster", { cache: "no-store" });
-  if (!response.ok) throw new Error("Unable to load Kafka cluster");
-  return response.json();
-}
-
-async function fetchTopicConsumerGroups(topicId: string): Promise<ConsumerGroup[]> {
-  const response = await fetch(
-    `/api/kafka/topics/${encodeURIComponent(topicId)}/consumer-groups`,
-    { cache: "no-store" },
-  );
-  if (!response.ok) throw new Error(`Unable to load consumer groups for ${topicId}`);
-  return response.json();
-}
-
 function ClusterNode({ data }: NodeProps<Node<CommonNodeData>>) {
   return (
     <div className="w-[390px] rounded-2xl border border-emerald-500 bg-white p-5 shadow-lg">
@@ -225,7 +206,7 @@ function ClusterNode({ data }: NodeProps<Node<CommonNodeData>>) {
   );
 }
 
-function BrokerNode({ data }: NodeProps<Node<CommonNodeData>>) {
+function BrokerNode({ data }: NodeProps<Node<BrokerNodeData>>) {
   return (
     <div className="w-[390px] rounded-2xl border border-slate-300 bg-white p-5 shadow-md">
       <Handle id="broker-in" type="target" position={Position.Top} className="!h-3 !w-3 !border-2 !border-white !bg-slate-500" />
@@ -234,7 +215,11 @@ function BrokerNode({ data }: NodeProps<Node<CommonNodeData>>) {
         <div className="rounded-xl bg-blue-50 p-4 text-blue-700"><Server className="h-8 w-8" /></div>
         <div className="min-w-0 flex-1"><p className="text-xl font-bold text-slate-900">{data.title}</p><p className="mt-1 text-sm text-slate-500">{data.subtitle}</p></div>
         <Badge className="border-0 bg-emerald-100 text-emerald-800 hover:bg-emerald-100"><CircleDot className="mr-1 h-3 w-3" />{data.status}</Badge>
+        <Button type="button" variant="outline" size="icon" aria-label={data.expanded ? "Collapse broker topics" : "Expand broker topics"} onClick={(event) => { event.stopPropagation(); data.onToggle(!data.expanded); }}>
+          <ChevronDown className={`h-4 w-4 transition-transform ${data.expanded ? "rotate-180" : ""}`} />
+        </Button>
       </div>
+      <p className="mt-3 text-xs text-slate-500">{data.expanded ? "Topics visible · click to collapse" : "Topics hidden · click to expand"}</p>
     </div>
   );
 }
@@ -245,19 +230,19 @@ function Metric({ label, value, tone = "slate" }: { label: string; value: number
 }
 
 function TopicNode({ id, data }: NodeProps<Node<TopicNodeData>>) {
-  const { topic, expanded, loading, onToggle } = data;
+  const { topic, expanded, onToggle } = data;
   const updateNodeInternals = useUpdateNodeInternals();
 
   // React Flow caches node dimensions. Re-measure after opening/closing so the
   // node body, hit area and connected edge endpoints all use the new height.
   useEffect(() => {
     updateNodeInternals(id);
-  }, [id, expanded, loading, topic.groups, updateNodeInternals]);
+  }, [id, expanded, topic.groups, updateNodeInternals]);
 
   return (
-    <div className={`w-[500px] rounded-2xl border bg-white p-5 shadow-md transition-shadow ${expanded ? "border-violet-300 shadow-lg" : "border-slate-300"}`}>
+    <div onClick={(event) => event.stopPropagation()} className={`w-[560px] rounded-2xl border bg-white p-5 shadow-md transition-shadow ${expanded ? "border-violet-300 shadow-lg" : "border-slate-300"}`}>
       <Handle id="topic-in" type="target" position={Position.Top} className="!h-3 !w-3 !border-2 !border-white !bg-slate-500" />
-      <Collapsible open={expanded} onOpenChange={() => onToggle(topic.id)}>
+      <Collapsible open={expanded} onOpenChange={(open) => onToggle(topic.id, open)}>
         <div className="flex items-center gap-3">
           <div className="rounded-xl bg-violet-50 p-3 text-violet-700"><Database className="h-7 w-7" /></div>
           <div className="min-w-0 flex-1">
@@ -278,13 +263,7 @@ function TopicNode({ id, data }: NodeProps<Node<TopicNodeData>>) {
         </div>
         <CollapsibleContent forceMount className="data-[state=closed]:hidden">
           <div className="space-y-3 pt-4">
-            {loading ? (
-              <div className="space-y-3 rounded-xl border bg-slate-50 p-4">
-                <div className="flex items-center gap-2"><Skeleton className="h-5 w-5 rounded-full" /><Skeleton className="h-4 w-40" /></div>
-                <div className="grid grid-cols-3 gap-2"><Skeleton className="h-16" /><Skeleton className="h-16" /><Skeleton className="h-16" /></div>
-                <Skeleton className="h-28 w-full" /><p className="text-xs text-slate-500">Loading consumer groups and topic status…</p>
-              </div>
-            ) : topic.groups.length === 0 ? (
+            {topic.groups.length === 0 ? (
               <div className="rounded-xl border border-dashed p-5 text-center text-sm text-slate-500">No consumer groups found.</div>
             ) : topic.groups.map((group, index) => (
               <section key={`${group.group_id}-${index}`} className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
@@ -319,24 +298,18 @@ function TopicNode({ id, data }: NodeProps<Node<TopicNodeData>>) {
 }
 
 const nodeTypes = { cluster: ClusterNode, broker: BrokerNode, topic: TopicNode };
-const TOPIC_WIDTH = 500;
-const TOPIC_GAP = 48;
+const TOPIC_WIDTH = 560;
+const TOPIC_GAP = 44;
 
-function makeLayout(cluster: KafkaCluster, expandedTopics: string[], loadingTopics: string[], onToggle: (id: string) => void) {
+function makeLayout(cluster: KafkaCluster, expandedTopics: string[], brokerExpanded: boolean, onToggle: (id: string, open: boolean) => void, onToggleBroker: (open: boolean) => void) {
   const broker = cluster.brokers[0];
-  const topics = broker?.topics ?? [];
-  const totalWidth = topics.length * TOPIC_WIDTH + Math.max(0, topics.length - 1) * TOPIC_GAP;
+  const topics = brokerExpanded ? (broker?.topics ?? []) : [];
+  const totalWidth = Math.max(TOPIC_WIDTH, topics.length * TOPIC_WIDTH + Math.max(0, topics.length - 1) * TOPIC_GAP);
   const startX = -totalWidth / 2;
   const nodes: Node[] = [
-    { id: "cluster", type: "cluster", position: { x: -195, y: 40 }, data: { title: cluster.name, status: cluster.status }, draggable: false },
-    ...(broker ? [{ id: broker.id, type: "broker", position: { x: -195, y: 260 }, data: { title: broker.name, subtitle: broker.id, status: broker.status }, draggable: false } as Node] : []),
-    ...topics.map((topic, index) => ({
-      id: topic.id,
-      type: "topic",
-      position: { x: startX + index * (TOPIC_WIDTH + TOPIC_GAP), y: 500 },
-      data: { topic, expanded: expandedTopics.includes(topic.id), loading: loadingTopics.includes(topic.id), onToggle },
-      draggable: false,
-    } as Node)),
+    { id: "cluster", type: "cluster", position: { x: -195, y: 30 }, data: { title: cluster.name, status: cluster.status }, draggable: false },
+    ...(broker ? [{ id: broker.id, type: "broker", position: { x: -195, y: 245 }, data: { title: broker.name, subtitle: broker.id, status: broker.status, expanded: brokerExpanded, onToggle: onToggleBroker }, draggable: false } as Node] : []),
+    ...topics.map((topic, index) => ({ id: topic.id, type: "topic", position: { x: startX + index * (TOPIC_WIDTH + TOPIC_GAP), y: 455 }, data: { topic, expanded: expandedTopics.includes(topic.id), onToggle }, draggable: false } as Node)),
   ];
   const edges: Edge[] = [
     ...(broker ? [{ id: "cluster-broker", source: "cluster", sourceHandle: "cluster-out", target: broker.id, targetHandle: "broker-in", type: "smoothstep", style: { stroke: "#64748b", strokeWidth: 2 } } as Edge] : []),
@@ -346,105 +319,45 @@ function makeLayout(cluster: KafkaCluster, expandedTopics: string[], loadingTopi
 }
 
 function KafkaHierarchyCanvas() {
-  const [cluster, setCluster] = useState<KafkaCluster>(initialKafkaData);
+  const [cluster] = useState<KafkaCluster>(initialKafkaData);
   const [expandedTopics, setExpandedTopics] = useState<string[]>([]);
-  const [loadingTopics, setLoadingTopics] = useState<string[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [brokerExpanded, setBrokerExpanded] = useState(true);
   const { fitView } = useReactFlow();
-  const [flowNodes, setFlowNodes, onNodesChange] = useNodesState<Node>(
-    makeLayout(initialKafkaData, [], [], toggleTopic).nodes,
-  );
-  const [flowEdges, setFlowEdges, onEdgesChange] = useEdgesState<Edge>(
-    makeLayout(initialKafkaData, [], [], toggleTopic).edges,
-  );
 
-  async function toggleTopic(topicId: string) {
-    if (expandedTopics.includes(topicId)) {
-      setExpandedTopics((current) => current.filter((id) => id !== topicId));
-      return;
-    }
-    setExpandedTopics((current) => [...current, topicId]);
-    setLoadingTopics((current) => current.includes(topicId) ? current : [...current, topicId]);
-    try {
-      const groups = await fetchTopicConsumerGroups(topicId);
-      setCluster((current) => ({
-        ...current,
-        brokers: current.brokers.map((broker) => ({
-          ...broker,
-          topics: broker.topics.map((topic) => topic.id === topicId ? { ...topic, groups } : topic),
-        })),
-      }));
-    } catch {
-      // The supplied mock groups remain visible if the placeholder API is offline.
-    } finally {
-      setLoadingTopics((current) => current.filter((id) => id !== topicId));
-    }
+  function toggleTopic(topicId: string, open: boolean) {
+    setExpandedTopics((current) => open
+      ? (current.includes(topicId) ? current : [...current, topicId])
+      : current.filter((id) => id !== topicId));
   }
 
-  async function refreshCluster() {
-    setRefreshing(true);
-    try {
-      const data = await fetchKafkaCluster();
-      setCluster(data);
-      setApiError(null);
-    } catch {
-      setApiError("API is not connected yet. Showing the supplied mock data.");
-    } finally {
-      setRefreshing(false);
-    }
+  function toggleBroker(open: boolean) {
+    setBrokerExpanded(open);
+    if (!open) setExpandedTopics([]);
   }
 
-  useEffect(() => {
-    let active = true;
-    fetchKafkaCluster()
-      .then((data) => { if (active) { setCluster(data); setApiError(null); } })
-      .catch(() => { if (active) setApiError("API is not connected yet. Showing the supplied mock data."); });
-    return () => { active = false; };
-  }, []);
+  const layout = makeLayout(cluster, expandedTopics, brokerExpanded, toggleTopic, toggleBroker);
+  const [flowNodes, setFlowNodes, onNodesChange] = useNodesState<Node>(layout.nodes);
+  const [flowEdges, setFlowEdges, onEdgesChange] = useEdgesState<Edge>(layout.edges);
 
-  const layout = makeLayout(cluster, expandedTopics, loadingTopics, toggleTopic);
-
-  // Keep React Flow controlled state synchronized with the latest hierarchy.
+  // Rebuild both nodes and edges together. React Flow then re-measures expanded
+  // topic nodes and reconnects the edges to their actual handle positions.
   useEffect(() => {
     setFlowNodes(layout.nodes);
     setFlowEdges(layout.edges);
-  }, [cluster, expandedTopics, loadingTopics]);
-
-  function autoLayout() {
-    setFlowNodes(layout.nodes);
-    setFlowEdges(layout.edges);
-    requestAnimationFrame(() => fitView({ padding: 0.16, duration: 350, minZoom: 0.35, maxZoom: 1 }));
-  }
+    const frame = requestAnimationFrame(() => fitView({ padding: 0.16, duration: 250, minZoom: 0.25, maxZoom: 1 }));
+    return () => cancelAnimationFrame(frame);
+  }, [cluster, expandedTopics, brokerExpanded]);
 
   return (
     <div className="flex h-[850px] min-h-[650px] w-full flex-col overflow-hidden rounded-2xl border bg-slate-50">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b bg-white px-6 py-4">
-        <div className="flex items-center gap-3"><div className="rounded-xl bg-slate-100 p-2.5 text-slate-900"><Network className="h-7 w-7" /></div><div><h1 className="text-xl font-bold tracking-tight text-slate-950">Kafka Hierarchy</h1><p className="text-sm text-slate-500">Cluster, brokers, topics and consumer groups</p></div></div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge className="border-0 bg-emerald-100 px-3 py-1.5 text-emerald-800 hover:bg-emerald-100"><Activity className="mr-1.5 h-3.5 w-3.5" />Cluster: {cluster.status}</Badge>
-          <Button variant="outline" size="sm" onClick={refreshCluster} disabled={refreshing}><RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />Refresh</Button>
-          <Button variant="outline" size="sm" onClick={autoLayout}><LayoutGrid className="mr-2 h-4 w-4" />Auto layout</Button>
-        </div>
+        <div className="flex items-center gap-3"><div className="rounded-xl bg-slate-100 p-2.5 text-slate-900"><Network className="h-7 w-7" /></div><div><h1 className="text-xl font-bold tracking-tight text-slate-950">Kafka Hierarchy</h1><p className="text-sm text-slate-500">Cluster → Broker → Topics → Consumer groups and partition status</p></div></div>
+        <Badge className="border-0 bg-emerald-100 px-3 py-1.5 text-emerald-800 hover:bg-emerald-100"><Activity className="mr-1.5 h-3.5 w-3.5" />Cluster: {cluster.status}</Badge>
       </header>
-      {apiError && <div className="border-b bg-amber-50 px-6 py-2 text-xs text-amber-800">{apiError}</div>}
       <div className="min-h-0 flex-1">
-        <ReactFlow
-          nodes={flowNodes}
-          edges={flowEdges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.16, minZoom: 0.35, maxZoom: 1 }}
-          minZoom={0.25}
-          maxZoom={1.5}
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable={false}
-          proOptions={{ hideAttribution: true }}
-          defaultEdgeOptions={{ type: "smoothstep", interactionWidth: 20 }}
-        >
+        <ReactFlow nodes={flowNodes} edges={flowEdges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} nodeTypes={nodeTypes}
+          fitView fitViewOptions={{ padding: 0.16 }} minZoom={0.2} maxZoom={1.5} nodesDraggable={false} nodesConnectable={false}
+          elementsSelectable={false} proOptions={{ hideAttribution: true }} defaultEdgeOptions={{ type: "smoothstep", interactionWidth: 20 }}>
           <Background color="#cbd5e1" gap={22} size={1} />
           <Controls showInteractive={false} position="bottom-right" />
         </ReactFlow>
