@@ -1,0 +1,184 @@
+const initialKafkaData = {
+    name: "kafka-cluster-1",
+    status: "Healthy",
+    brokers: [
+        {
+            id: "broker-1",
+            name: "Broker-1",
+            status: "Online",
+            topics: [
+                {
+                    id: "tp-meter-command",
+                    name: "tp-meter-command",
+                    number: "6",
+
+                    groups: [
+                        {
+                            group_id: "gp-dlms-worker",
+                            state: "STABLE",
+
+                            status: {
+                                total_consumers: 2,
+                                working_consumers: 2,
+                                idle_consumers: 0
+                            },
+
+                            topicStatus: {
+                                id: "tp-meter-command",
+                                name: "tp-meter-command",
+                                table: [
+                                    {
+                                        partition: 3,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+                                    {
+                                        partition: 3,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+                                    {
+                                        partition: 3,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+                                    {
+                                        partition: 3,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+                                    {
+                                        partition: 3,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+
+                                ]
+                            }
+                        }
+                    ]
+
+
+                },
+
+                 {
+                    id: "tp-request-queue",
+                    name: "tp-request-queue",
+                    number: "1",
+
+                    groups: [
+                        {
+                            group_id: "gp-dlms-worker",
+                            state: "STABLE",
+
+                            status: {
+                                total_consumers: 2,
+                                working_consumers: 2,
+                                idle_consumers: 0
+                            },
+
+                            topicStatus: {
+                                id: "tp-meter-command",
+                                name: "tp-meter-command",
+                                table: [
+                                    {
+                                        partition: 3,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+                                    {
+                                        partition: 3,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+                                    {
+                                        partition: 3,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+                                    {
+                                        partition: 3,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+                                    {
+                                        partition: 3,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+
+                                ]
+                            }
+                        }
+                    ]
+
+
+                },
+
+                 {
+                    id: "tp-meter-response",
+                    name: "tp-meter-response",
+                    number: "6",
+
+                    groups: [
+                        {
+                            group_id: "gp-db-writer",
+                            state: "STABLE",
+
+                            status: {
+                                total_consumers: 2,
+                                working_consumers: 2,
+                                idle_consumers: 0
+                            },
+
+                            topicStatus: {
+                                id: "tp-meter-response",
+                                name: "tp-meter-response",
+                                table: [
+                                    {
+                                        partition: 3,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+                                    {
+                                        partition: 4,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+                                    {
+                                        partition: 5,
+                                        current_offset: 239,
+                                        log_end_offset: 239,
+                                        lag: 0
+                                    },
+                                    {
+                                        partition: 0,
+                                        current_offset: 213,
+                                        log_end_offset: 223,
+                                        lag: 0
+                                    },
+                                  
+
+                                ]
+                            }
+                        }
+                    ]
+
+
+                },
+            ]
+        }
+    ]
+}
