@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -199,39 +199,43 @@ type TopicData = { topic: Topic; open: boolean; onToggle: () => void };
 
 function ClusterNode({ data }: NodeProps<Node<ClusterData>>) {
   return (
-    <Card className="w-[320px] shadow-sm">
-      <CardContent className="flex items-center justify-between p-3">
-        <div className="flex items-center gap-2">
-          <Server className="h-5 w-5 text-blue-600" />
+    <Card className="w-[320px] overflow-visible rounded-xl border border-slate-200 bg-white shadow-[0_8px_28px_-12px_rgba(15,23,42,0.22)]">
+      <CardContent className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+            <Server className="h-5 w-5" />
+          </div>
           <div>
-            <div className="text-[11px] text-muted-foreground">Cluster</div>
-            <div className="text-sm font-medium">{data.name}</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Kafka cluster</div>
+            <div className="mt-0.5 text-sm font-semibold tracking-tight">{data.name}</div>
           </div>
         </div>
-        <Badge className={statusStyle(data.status)}>{data.status}</Badge>
+        <Badge className={cn("rounded-full border-0 px-2.5 py-1 text-[10px] font-semibold", statusStyle(data.status))}>{data.status}</Badge>
       </CardContent>
-      <Handle type="source" position={Position.Bottom} />
+      <Handle type="source" position={Position.Bottom} className="!h-2.5 !w-2.5 !border-2 !border-white !bg-indigo-500" />
     </Card>
   );
 }
 
 function BrokerNode({ data }: NodeProps<Node<BrokerData>>) {
   return (
-    <Card className="w-[320px] shadow-sm">
-      <Handle type="target" position={Position.Top} />
+    <Card className="w-[320px] overflow-visible rounded-xl border border-slate-200 bg-white shadow-[0_8px_28px_-12px_rgba(15,23,42,0.22)]">
+      <Handle type="target" position={Position.Top} className="!h-2.5 !w-2.5 !border-2 !border-white !bg-sky-500" />
       <Collapsible open={data.open} onOpenChange={data.onToggle}>
         <CardContent className="p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Network className="h-5 w-5 text-blue-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+                <Network className="h-5 w-5" />
+              </div>
               <div>
-                <div className="text-[11px] text-muted-foreground">Broker</div>
-                <div className="text-sm font-medium">{data.name}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Broker node</div>
+                <div className="mt-0.5 text-sm font-semibold tracking-tight">{data.name}</div>
               </div>
             </div>
-            <Badge className={statusStyle(data.status)}>{data.status}</Badge>
+            <Badge className={cn("rounded-full border-0 px-2.5 py-1 text-[10px] font-semibold", statusStyle(data.status))}>{data.status}</Badge>
           </div>
-          <CollapsibleTrigger className="nodrag mt-2 flex w-full items-center justify-between border-t pt-2 text-xs text-muted-foreground">
+          <CollapsibleTrigger className="nodrag mt-3 flex w-full items-center justify-between border-t border-slate-100 pt-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
             <span>Topics ({data.topicCount})</span>
             <ChevronDown
               className={cn("h-4 w-4 transition-transform", !data.open && "-rotate-90")}
@@ -239,7 +243,7 @@ function BrokerNode({ data }: NodeProps<Node<BrokerData>>) {
           </CollapsibleTrigger>
         </CardContent>
       </Collapsible>
-      <Handle type="source" position={Position.Bottom} />
+      <Handle type="source" position={Position.Bottom} className="!h-2.5 !w-2.5 !border-2 !border-white !bg-sky-500" />
     </Card>
   );
 }
@@ -248,16 +252,18 @@ function TopicNode({ data }: NodeProps<Node<TopicData>>) {
   const { topic, open, onToggle } = data;
 
   return (
-    <Card className="w-[320px] shadow-sm">
-      <Handle type="target" position={Position.Top} />
+    <Card className="w-[320px] overflow-visible rounded-xl border border-slate-200 bg-white shadow-[0_8px_28px_-12px_rgba(15,23,42,0.2)]">
+      <Handle type="target" position={Position.Top} className="!h-2.5 !w-2.5 !border-2 !border-white !bg-violet-500" />
       <Collapsible open={open} onOpenChange={onToggle}>
-        <CardHeader className="p-3">
+        <CardHeader className="p-4">
           <CollapsibleTrigger className="nodrag flex w-full items-center justify-between text-left">
             <span className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+                <MessageSquare className="h-4 w-4" />
+              </span>
               <span>
-                <span className="block text-sm font-medium">{topic.name}</span>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="block text-[13px] font-semibold tracking-tight">{topic.name}</span>
+                <span className="mt-0.5 block text-[11px] text-muted-foreground">
                   {topic.number} partitions
                 </span>
               </span>
@@ -269,17 +275,17 @@ function TopicNode({ data }: NodeProps<Node<TopicData>>) {
         </CardHeader>
 
         <CollapsibleContent>
-          <CardContent className="nodrag nowheel space-y-3 p-3 pt-0">
+          <CardContent className="nodrag nowheel space-y-3 border-t border-slate-100 p-4 pt-3">
             {topic.groups.map((g) => (
               <div key={g.group_id} className="space-y-3">
                 {/* Consumer group card */}
-                <div className="rounded-lg border bg-muted/40 p-3">
+                <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3">
                   <p className="mb-1.5 text-[11px] text-muted-foreground">
                     Consumer group
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] font-medium">{g.group_id}</span>
-                    <Badge className={stateStyle(g.state)}>{g.state}</Badge>
+                    <span className="text-[12px] font-semibold tracking-tight">{g.group_id}</span>
+                    <Badge className={cn("rounded-full border-0 px-2 py-0.5 text-[10px] font-semibold", stateStyle(g.state))}>{g.state}</Badge>
                   </div>
                   <div className="mt-2 flex gap-1.5">
                     <Stat
@@ -305,17 +311,17 @@ function TopicNode({ data }: NodeProps<Node<TopicData>>) {
                 </div>
 
                 {/* Topic status card */}
-                <div className="rounded-lg border bg-muted/40 p-3">
-                  <p className="mb-1.5 text-[11px] text-muted-foreground">
+                <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-3">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     Topic status · {g.topicStatus.name}
                   </p>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="h-7 px-1 text-xs">Partition</TableHead>
-                        <TableHead className="h-7 px-1 text-xs">Current</TableHead>
-                        <TableHead className="h-7 px-1 text-xs">End</TableHead>
-                        <TableHead className="h-7 px-1 text-xs">Lag</TableHead>
+                        <TableHead className="h-8 px-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Partition</TableHead>
+                        <TableHead className="h-8 px-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Current</TableHead>
+                        <TableHead className="h-8 px-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">End</TableHead>
+                        <TableHead className="h-8 px-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Lag</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -323,17 +329,17 @@ function TopicNode({ data }: NodeProps<Node<TopicData>>) {
                         const lag = calcLag(r);
                         return (
                           <TableRow key={`${r.partition}-${i}`}>
-                            <TableCell className="px-1 py-1 font-mono text-xs">
+                            <TableCell className="px-1 py-1.5 font-mono text-[11px]">
                               {r.partition}
                             </TableCell>
-                            <TableCell className="px-1 py-1 font-mono text-xs">
+                            <TableCell className="px-1 py-1.5 font-mono text-[11px]">
                               {r.current_offset}
                             </TableCell>
-                            <TableCell className="px-1 py-1 font-mono text-xs">
+                            <TableCell className="px-1 py-1.5 font-mono text-[11px]">
                               {r.log_end_offset}
                             </TableCell>
-                            <TableCell className="px-1 py-1">
-                              <Badge className={lagStyle(lag)}>{lag}</Badge>
+                            <TableCell className="px-1 py-1.5">
+                              <Badge className={cn("rounded-full border-0 px-2 py-0.5 text-[10px] font-semibold", lagStyle(lag))}>{lag}</Badge>
                             </TableCell>
                           </TableRow>
                         );
@@ -362,8 +368,8 @@ const nodeTypes = {
 const NODE_W = 320;
 const GAP_X = 40;
 const CLUSTER_Y = 0;
-const BROKER_Y = 110;
-const TOPIC_Y = 290;
+const BROKER_Y = 175;
+const TOPIC_Y = 390;
 
 export default function KafkaFlow({
   data = initialKafkaData,
@@ -378,13 +384,11 @@ export default function KafkaFlow({
     Object.fromEntries(broker.topics.map((t) => [t.id, true]))
   );
 
-  const toggleBroker = useCallback(() => setBrokerOpen((v) => !v), []);
-  const toggleTopic = useCallback(
-    (id: string) => setOpenTopics((s) => ({ ...s, [id]: !s[id] })),
-    []
-  );
+  const toggleBroker = () => setBrokerOpen((v) => !v);
+  const toggleTopic = (id: string) =>
+    setOpenTopics((s) => ({ ...s, [id]: !s[id] }));
 
-  const { nodes, edges } = useMemo(() => {
+  const { nodes, edges } = (() => {
     const count = broker.topics.length;
     const totalW = count * NODE_W + (count - 1) * GAP_X;
     const centerX = totalW / 2 - NODE_W / 2;
@@ -418,7 +422,8 @@ export default function KafkaFlow({
         source: "cluster",
         target: broker.id,
         type: "smoothstep",
-        markerEnd: { type: MarkerType.ArrowClosed },
+        style: { stroke: "#64748b", strokeWidth: 2, strokeDasharray: "none" },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#94a3b8" },
       },
     ];
 
@@ -439,28 +444,28 @@ export default function KafkaFlow({
           source: broker.id,
           target: t.id,
           type: "smoothstep",
-          animated: true,
-          markerEnd: { type: MarkerType.ArrowClosed },
+          style: { stroke: "#64748b", strokeWidth: 2, strokeDasharray: "none" },
+          markerEnd: { type: MarkerType.ArrowClosed, color: "#94a3b8" },
         });
       });
     }
 
     return { nodes, edges };
-  }, [data, broker, brokerOpen, openTopics, toggleBroker, toggleTopic]);
+  })();
 
   return (
-    <div className="h-screen w-full bg-background">
+    <div className="h-screen w-full bg-white">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.2 }}
+        fitViewOptions={{ padding: 0.28 }}
         nodesConnectable={false}
         minZoom={0.3}
         proOptions={{ hideAttribution: true }}
       >
-        <Background />
+        <Background color="#dbe3ee" gap={22} size={1} />
         <Controls showInteractive={false} />
       </ReactFlow>
     </div>
